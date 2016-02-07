@@ -7,14 +7,11 @@ package name.tachenov.leetcode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  *
@@ -22,123 +19,55 @@ import java.util.function.Function;
  */
 public class WordLadder {
     public List<List<String>> findLadders(String beginWord, String endWord, Set<String> wordList) {
-        Map<Group, List<Word>> groups = new HashMap<>();
-        Map<String, Word> words = new HashMap<>();
-        final Word begin = new Word(beginWord, 0);
-        words.put(beginWord, begin);
-        addToGroups(groups, begin);
-        for (String w : wordList) {
-            Word word = new Word(w, -1);
-            if (words.putIfAbsent(w, word) == null) {
-                addToGroups(groups, word);
-            }
-        }
-        Word end = new Word(endWord, -1);
-        Word oldEnd = words.putIfAbsent(endWord, end);
-        if (oldEnd == null) {
-            addToGroups(groups, end);
-        } else {
-            end = oldEnd; // already seen this word
-        }
+        Set<String> visited = new HashSet<>();
         List<List<String>> lists = new LinkedList<>();
-        lists.add(new ArrayList());
+        lists.add(new ArrayList<>());
         lists.get(0).add(beginWord);
+        visited.add(beginWord);
+        char[] end = endWord.toCharArray();
         OUTER:
         while (!lists.isEmpty()) {
+            Set<String> moreVisited = new HashSet<>();
             for (ListIterator<List<String>> it = lists.listIterator(); it.hasNext(); ) {
                 List<String> list = it.next();
-                Word u = words.get(list.get(list.size() - 1));
-                if (u == end) {
+                char[] word = list.get(list.size() - 1).toCharArray();
+                if (Arrays.equals(word, end)) {
                     break OUTER;
                 }
                 int count = 0;
-                for (List<Word> group : u.groups) {
-                    for (Word neighbor : group) {
-                        // We need to consider the next node if we haven't visited it yet
-                        // OR we visited it during this iteration (merging paths).
-                        if (neighbor.distance == -1 || neighbor.distance == u.distance + 1) {
-                            neighbor.distance = u.distance + 1;
-                            if (++count > 1) { // need to clone
-                                list = new ArrayList<>(list);
-                                it.add(list);
-                                list.set(list.size() - 1, neighbor.word);
-                            } else { // add to existing
-                                list.add(neighbor.word);
+                for (int i = 0; i < word.length; ++i) {
+                    char old = word[i];
+                    for (char c = 'a'; c <= 'z'; ++c) {
+                        if (c != old) {
+                            word[i] = c;
+                            String s = new String(word);
+                            if (!visited.contains(s) && (wordList.contains(s) || s.equals(endWord))) {
+                                moreVisited.add(s);
+                                if (++count > 1) { // need to clone
+                                    list = new ArrayList<>(list);
+                                    list.set(list.size() - 1, s);
+                                    it.add(list);
+                                } else {
+                                    list.add(s);
+                                }
                             }
                         }
                     }
+                    word[i] = old;
                 }
                 if (count == 0) {
-                    it.remove(); // this path leads nowhere
+                    it.remove(); // dead end
                 }
             }
+            visited.addAll(moreVisited);
         }
         for (ListIterator<List<String>> it = lists.listIterator(); it.hasNext(); ) {
             List<String> list = it.next();
-            if (list.get(list.size() - 1) != end.word) { // OK to compare using ==
+            if (!list.get(list.size() - 1).equals(endWord)) {
                 it.remove();
             }
         }
         return lists;
-    }
-    
-    private static void addToGroups(Map<Group, List<Word>> groups, Word word) {
-        for (int i = 0; i < word.word.length(); ++i) {
-            Group id = new Group(word.word, i);
-            List<Word> group = groups.computeIfAbsent(id, new Function<Group, List<Word>>() {
-                @Override
-                public List<Word> apply(Group g) {
-                    return new ArrayList<>();
-                }
-            });
-            group.add(word);
-            word.groups.add(group);
-        }
-    }
-    
-    private static class Word {
-        final String word;
-        final List<List<Word>> groups = new ArrayList<>();
-        int distance;
-        
-        Word(String word, int distance) {
-            this.word = word;
-            this.distance = distance;
-        }
-
-        @Override
-        public String toString() {
-            return word;
-        }
-        
-    }
-    
-    private static class Group {
-        final char[] word;
-        final int hash;
-
-        Group(String word, int pos) {
-            this.word = word.toCharArray();
-            this.word[pos] = 0; // ignore this char
-            this.hash = Arrays.hashCode(this.word);
-        }
-
-        @Override
-        public int hashCode() {
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final Group other = (Group) obj;
-            return Arrays.equals(this.word, other.word);
-        }
     }
     
     public static void main(String[] args) {
