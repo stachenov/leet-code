@@ -5,8 +5,10 @@
  */
 package name.tachenov.leetcode;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,39 +23,28 @@ import java.util.function.Function;
 public class WordLadder {
     public int ladderLength(String beginWord, String endWord, Set<String> wordList) {
         Map<Group, List<Word>> groups = new HashMap<>();
-        final Word begin = new Word(beginWord);
+        final Word begin = new Word(beginWord, 0);
         addToGroups(groups, begin);
         for (String w : wordList) {
-            addToGroups(groups, new Word(w));
+            addToGroups(groups, new Word(w, -1));
         }
-        final Word end = new Word(endWord);
+        final Word end = new Word(endWord, -1);
         addToGroups(groups, end);
-        Set<Word> source = new HashSet<>();
-        Set<Word> destination = new HashSet<>();
-        source.add(begin);
-        destination.add(end);
-        begin.visited = end.visited = true;
-        for (int d = 1; !source.isEmpty() && !destination.isEmpty(); ++d) {
-            if (source.size() > destination.size()) {
-                Set<Word> tmp = source;
-                source = destination;
-                destination = tmp;
+        Deque<Word> unprocessed = new ArrayDeque<>();
+        unprocessed.add(begin);
+        while (!unprocessed.isEmpty()) {
+            Word u = unprocessed.remove();
+            if (u == end) {
+                return u.distance + 1;
             }
-            Set<Word> newSource = new HashSet<>();
-            for (Word u : source) {
-                for (List<Word> group : u.groups) {
-                    for (Word neighbor : group) {
-                        if (destination.contains(neighbor)) {
-                            return d + 1;
-                        }
-                        if (!neighbor.visited) {
-                            neighbor.visited = true;
-                            newSource.add(neighbor);
-                        }
+            for (List<Word> group : u.groups) {
+                for (Word neighbor : group) {
+                    if (neighbor.distance == -1) {
+                        neighbor.distance = u.distance + 1;
+                        unprocessed.add(neighbor);
                     }
                 }
             }
-            source = newSource;
         }
         return 0;
     }
@@ -75,10 +66,11 @@ public class WordLadder {
     private static class Word {
         final String word;
         final List<List<Word>> groups = new ArrayList<>();
-        boolean visited = false;
+        int distance;
         
-        Word(String word) {
+        Word(String word, int distance) {
             this.word = word;
+            this.distance = distance;
         }
 
         @Override
