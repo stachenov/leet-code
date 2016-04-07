@@ -13,7 +13,14 @@ public class LongestAtMostKNGTest {
     @DataProvider
     public Object[][] testCases() {
         return new Object[][] {
-            {"eceba", 2, 3} // "ece"
+            {"eceba", 2, 3}, // "ece"
+            {"aaa", 2, 3},
+            {"aba", 2, 3},
+            {"abcaba", 2, 3},
+            {"abcabas", 2, 3},
+            {"abc", 1, 1},
+            {"aab", 1, 2},
+            {"abcdbef", 3, 4},
         };
     }
     
