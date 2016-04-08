@@ -21,6 +21,7 @@ public class LongestAtMostKNGTest {
             {"abc", 1, 1},
             {"aab", 1, 2},
             {"abcdbef", 3, 4},
+            {"\uD87E\uDC1A\uD87E\uDC28", 2, 4}, // SMP
         };
     }
     
