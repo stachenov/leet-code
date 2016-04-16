@@ -4,11 +4,10 @@
  */
 package name.tachenov.leetcode;
 
+import static org.assertj.core.api.Assertions.*;
 import org.testng.annotations.Test;
 
-public class NestedIteratorNGTest {
-    
-    
+public class NestedIteratorIT {
     
     @Test
     public void test() {
