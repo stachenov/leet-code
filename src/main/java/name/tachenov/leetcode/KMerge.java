@@ -66,8 +66,8 @@ public class KMerge {
         
     }
     
-    private static class ListNode {
-        int val;
-        ListNode next;
+    public static class ListNode {
+        public int val;
+        public ListNode next;
     }
 }

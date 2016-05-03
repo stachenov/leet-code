@@ -16,13 +16,7 @@ import java.util.PriorityQueue;
  * @author alqualos
  */
 public class MedianFinder {
-    private final PriorityQueue<Integer> left = new PriorityQueue<>(
-            new Comparator<Integer>() {
-        @Override
-        public int compare(Integer o1, Integer o2) {
-            return Integer.compare(o2, o1);
-        }
-    });
+    private final PriorityQueue<Integer> left = new PriorityQueue<>(Comparator.reverseOrder());
     private final PriorityQueue<Integer> right = new PriorityQueue<>();
 
     // Adds a number into the data structure.
@@ -30,7 +24,6 @@ public class MedianFinder {
         if (left.isEmpty()) {
             left.add(num);
         } else if (left.size() == right.size()) {
-            Integer l = left.peek();
             Integer r = right.peek();
             if (num <= r) {
                 left.add(num);

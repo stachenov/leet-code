@@ -68,6 +68,8 @@ public class WallsAndGates {
                 case LEFT:
                     next = j > 0 && rooms[i][j - 1] > distance ? new Move(i, j - 1) : null;
                     break;
+                default:
+                    throw new AssertionError();
             }
             ++move;
             return next;

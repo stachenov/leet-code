@@ -99,8 +99,8 @@ public class Median2Removal {
             }
         } else {
             if (med2.length == 1) {
-                return -Long.compare((long) med2[0][0] - med1[0][0],
-                                    (long) med1[1][0] - med2[0][0]);
+                return Long.compare((long) med1[1][0] - med2[0][0],
+                                    (long) med2[0][0] - med1[0][0]);
             } else {
                 return Long.compare((long) med1[0][0] - med2[0][0],
                                     (long) med2[1][0] - med1[1][0]);

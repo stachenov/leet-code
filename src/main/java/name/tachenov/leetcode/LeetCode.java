@@ -64,10 +64,10 @@ public class LeetCode {
         if (result == null) {
             return new int[0][0];
         }
-        return result.stream()
+        final List<int[]> list = result.stream()
                 .map(l -> l.stream().mapToInt(Integer::intValue).toArray())
-                .collect(Collectors.toList())
-                .toArray(new int[0][]);
+                .collect(Collectors.toList());
+        return list.toArray(new int[list.size()][]);
     }
     
     public static TreeNode buildBBST(Random rnd, int n) {

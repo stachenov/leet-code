@@ -58,6 +58,28 @@ public class SuperUgly {
         public int compareTo(UglyNumber that) {
             return Integer.compare(this.num, that.num);
         }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 23 * hash + this.num;
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final UglyNumber other = (UglyNumber) obj;
+            return this.num == other.num;
+        }
         
     }
     

@@ -216,6 +216,7 @@ public class RegexNFA {
     }
     
     private static class StateCollection extends ArrayList<State> {
+        private static final long serialVersionUID = 0L;
         private final int id;
 
         public StateCollection(int id) {

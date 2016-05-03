@@ -21,7 +21,7 @@ public class Median2BinarySearch {
         int[] bigger = smaller == nums1 ? nums2 : nums1;
         int[] median = findMedian(smaller, bigger, (k - 1) / 2 + 1);
         int m1 = median[0] >= 0 ? smaller[median[0]] : bigger[median[1]];
-        if (k % 2 == 1)
+        if (k % 2 != 0)
             return m1;
         // For even lengths, we need to find the next median.
         // It should be somewhere nearby!

@@ -11,7 +11,7 @@ import java.util.Arrays;
  *
  * @author alqualos
  */
-public class Solution {
+public class ContainsNearbyDuplicate {
     public boolean containsNearbyDuplicate(int[] nums, int k) {
         if (nums.length == 0)
             return false;
@@ -60,7 +60,6 @@ public class Solution {
     
     public static void main(String[] args) {
         int[] nums = new int[] {0,1,2,3,4,5,0};
-        int[] indices = new int[nums.length];
-        System.out.println(new Solution().containsNearbyDuplicate(nums, 6));
+        System.out.println(new ContainsNearbyDuplicate().containsNearbyDuplicate(nums, 6));
     }
 }
