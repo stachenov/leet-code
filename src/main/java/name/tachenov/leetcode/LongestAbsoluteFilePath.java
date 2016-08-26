@@ -13,8 +13,7 @@ public class LongestAbsoluteFilePath {
         int longest = 0;
         for (String line : input.split("\n")) {
             int tabsCount = countLeadingTabs(line);
-            int depth = tabsCount + 1;
-            currentDir.cdUpToDepth(depth - 1);
+            currentDir.cdUpToDepth(tabsCount);
             String localName = line.substring(tabsCount);
             boolean dir = !localName.contains(".");
             if (dir)
