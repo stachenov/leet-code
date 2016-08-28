@@ -16,9 +16,7 @@ public class EliminationGame {
         int m = n;
         boolean ltr = true;
         while (m > 1) {
-            if (ltr) {
-                b += a;
-            } else if ((m & 1) == 1) {
+            if (ltr || (m & 1) == 1) {
                 b += a;
             }
             a *= 2;
