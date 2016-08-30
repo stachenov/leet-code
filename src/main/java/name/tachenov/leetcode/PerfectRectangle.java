@@ -9,121 +9,116 @@ import java.util.stream.*;
 
 public class PerfectRectangle {
     public boolean isRectangleCover(int[][] rectangles) {
-        int totalArea = Stream.of(rectangles).mapToInt(r -> area(r)).sum();
-        if (totalArea != area(getBounds(rectangles)))
+        int[] bounds = getBounds(rectangles);
+        if (area(bounds) != totalArea(rectangles))
             return false;
-        List<KeyPoint> keyPointsX = new ArrayList<>();
-        for (int i = 0; i < rectangles.length; ++i) {
-            keyPointsX.add(new KeyPoint(rectangles[i][0], rectangles[i], true));
-            keyPointsX.add(new KeyPoint(rectangles[i][2], rectangles[i], true));
-        }
-        Collections.sort(keyPointsX);
-        KeyPointList keyPointsY = new KeyPointList();
-        for (KeyPoint kpx : keyPointsX) {
-            KeyPoint start = new KeyPoint(kpx.rectangle[1], kpx.rectangle, false);
-            KeyPoint end = new KeyPoint(kpx.rectangle[3], kpx.rectangle, false);
-            if (kpx.isRectangleEndsHere()) {
-                keyPointsY.remove(start);
-                keyPointsY.remove(end);
-            } else {
-                int insertionPoint = keyPointsY.getNonOverlappingInsertionPoint(start, end);
-                if (insertionPoint == -1)
-                    return false;
-                keyPointsY.add(insertionPoint, start, end);
-            }
-        }
-        return true;
+        ToggleSet<Point> corners = findCornersOccurringOddTimes(rectangles);
+        return corners.containsExactly(corners(bounds));
     }
 
     private int[] getBounds(int[][] rectangles) {
-        int[] bounds = new int[4];
         int left = Integer.MAX_VALUE, right = Integer.MIN_VALUE,
                 top = Integer.MIN_VALUE, bottom = Integer.MAX_VALUE;
         for (int i = 0; i < rectangles.length; ++i) {
-            left = Math.min(left, rectangles[i][0]);
-            right = Math.max(right, rectangles[i][2]);
-            top = Math.max(top, rectangles[i][3]);
-            bottom = Math.min(bottom, rectangles[i][1]);
+            left = Math.min(left, left(rectangles[i]));
+            right = Math.max(right, right(rectangles[i]));
+            top = Math.max(top, top(rectangles[i]));
+            bottom = Math.min(bottom, bottom(rectangles[i]));
         }
-        bounds[0] = left;
-        bounds[1] = bottom;
-        bounds[2] = right;
-        bounds[3] = top;
-        return bounds;
+        return new int[] {left, bottom, right, top};
+    }
+
+    private static int left(int[] rectangle) {
+        return rectangle[0];
+    }
+
+    private static int right(int[] rectangle) {
+        return rectangle[2];
+    }
+
+    private static int top(int[] rectangle) {
+        return rectangle[3];
+    }
+
+    private static int bottom(int[] rectangle) {
+        return rectangle[1];
+    }
+
+    private int totalArea(int[][] rectangles) {
+        return Stream.of(rectangles).mapToInt(r -> area(r)).sum();
     }
     
     private static int area(int[] rectangle) {
-        return (rectangle[2] - rectangle[0]) * (rectangle[3] - rectangle[1]);
+        return width(rectangle) * height(rectangle);
     }
-    
-    private static class KeyPointList {
-        final List<KeyPoint> keyPoints = new ArrayList<>();
 
-        void remove(KeyPoint keyPoint) {
-            keyPoints.remove(Collections.binarySearch(keyPoints, keyPoint));
-        }
-
-        int getNonOverlappingInsertionPoint(KeyPoint start, KeyPoint end) {
-            int startIndex = -Collections.binarySearch(keyPoints, start) - 1;
-            int endIndex = -Collections.binarySearch(keyPoints, end) - 1;
-            if (overlaps(startIndex, endIndex))
-                return -1;
-            return startIndex;
-        }
-
-        private boolean overlaps(int startIndex, int endIndex) {
-            if (startIndex != endIndex)
-                return true; // some rectangle start or ends inside this one
-            if (startIndex == 0)
-                return false; // this one comes before the first starts
-            KeyPoint preceding = keyPoints.get(startIndex - 1);
-            if (preceding.isRectangleStartsHere())
-                return true; // this one is completely inside another rectangle
-            return false;
-        }
-
-        void add(int insertionPoint, KeyPoint start, KeyPoint end) {
-            keyPoints.add(insertionPoint, start);
-            keyPoints.add(insertionPoint + 1, end);
-        }
+    private static int width(int[] rectangle) {
+        return right(rectangle) - left(rectangle);
     }
-    
-    private static class KeyPoint implements Comparable<KeyPoint> {
-        final int coordinate;
-        final int[] rectangle;
-        private final boolean horizontal;
 
-        KeyPoint(int coordinate, int[] rectangle, boolean horizontal) {
-            this.coordinate = coordinate;
-            this.rectangle = rectangle;
-            this.horizontal = horizontal;
-        }
+    private static int height(int[] rectangle) {
+        return top(rectangle) - bottom(rectangle);
+    }
 
-        boolean isRectangleStartsHere() {
-            return horizontal
-                    ? coordinate == rectangle[0]
-                    : coordinate == rectangle[1];
+    private ToggleSet<Point> findCornersOccurringOddTimes(int[][] rectangles) {
+        ToggleSet<Point> corners = new ToggleSet<>();
+        for (int[] r : rectangles) {
+            for (Point c : corners(r)) {
+                corners.toggle(c);
+            }
         }
+        return corners;
+    }
+
+    private List<Point> corners(int[] r) {
+        return Arrays.asList(new Point(left(r), bottom(r)),
+                new Point(left(r), top(r)),
+                new Point(right(r), bottom(r)),
+                new Point(right(r), top(r)));
+    }
+
+    private static class ToggleSet<T> {
+        private final Set<T> elements = new HashSet<>();
         
-        boolean isRectangleEndsHere() {
-            return horizontal
-                    ? coordinate == rectangle[2]
-                    : coordinate == rectangle[3];
+        void toggle(T element) {
+            if (!elements.add(element))
+                elements.remove(element);
+        }
+
+        int size() {
+            return elements.size();
+        }
+
+        private boolean containsExactly(Collection<T> corners) {
+            return elements.equals(new HashSet<>(corners));
+        }
+    }
+    
+    private static class Point {
+        private final int x;
+        private final int y;
+
+        public Point(int x, int y) {
+            this.x = x;
+            this.y = y;
         }
 
         @Override
-        public int compareTo(KeyPoint o) {
-            int xc = Integer.compare(coordinate, o.coordinate);
-            if (xc == 0) {
-                if (isRectangleEndsHere() && o.isRectangleStartsHere())
-                    return -1;
-                else if (isRectangleStartsHere() && o.isRectangleEndsHere())
-                    return +1;
-                else
-                    return xc;
-            } else {
-                return xc;
-            }
+        public int hashCode() {
+            int hash = 3;
+            hash = 31 * hash + this.x;
+            hash = 31 * hash + this.y;
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null || getClass() != obj.getClass())
+                return false;
+            final Point other = (Point) obj;
+            return this.x == other.x && this.y == other.y;
         }
     }
 }
