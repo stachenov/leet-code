@@ -5,14 +5,11 @@
 package name.tachenov.leetcode;
 
 import java.util.*;
-import java.util.stream.*;
 
 public class RearrangeStringKDistanceApart {
     
     private static final Comparator<CountedChar> COUNT_DESC
             = (c1, c2) -> Integer.compare(c2.count, c1.count);
-    private static final Comparator<CountedChar> POS_ASC
-            = (c1, c2) -> Integer.compare(c1.lastPosition, c2.lastPosition);
     private int k;
 
     public String rearrangeString(String str, int k) {
@@ -29,7 +26,7 @@ public class RearrangeStringKDistanceApart {
         }
         StringBuilder sb = new StringBuilder();
         int pos = 0;
-        PriorityQueue<CountedChar> cooldown = new PriorityQueue<>(POS_ASC);
+        Queue<CountedChar> cooldown = new ArrayDeque<>();
         while (!maxHeap.isEmpty()) {
             CountedChar cc = maxHeap.remove();
             sb.appendCodePoint(cc.codePoint);
@@ -38,7 +35,7 @@ public class RearrangeStringKDistanceApart {
                 cooldown.add(cc);
             }
             ++pos;
-            while (!cooldown.isEmpty() && cooldown.peek().allowedAt(pos)) {
+            if (!cooldown.isEmpty() && cooldown.peek().allowedAt(pos)) {
                 maxHeap.add(cooldown.remove());
             }
         }
