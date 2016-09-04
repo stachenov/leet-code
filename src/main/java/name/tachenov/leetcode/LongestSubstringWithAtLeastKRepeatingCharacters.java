@@ -45,23 +45,14 @@ public class LongestSubstringWithAtLeastKRepeatingCharacters {
         }
 
         private void updateValidity(char c, int count) {
-            if (isValidCount(count))
+            if (isInvalidCount(count))
                 invalidChars.add(c);
             else
                 invalidChars.remove(c);
         }
 
-        private boolean isValidCount(int count) {
+        private boolean isInvalidCount(int count) {
             return count > 0 && count < k;
-        }
-        
-        void remove(char c) {
-            int count = counts.getOrDefault(c, 0) - 1;
-            if (count > 0)
-                counts.put(c, count);
-            else
-                counts.remove(c);
-            updateValidity(c, count);
         }
         
         boolean allValid() {
