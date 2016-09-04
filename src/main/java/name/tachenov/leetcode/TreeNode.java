@@ -1,14 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package name.tachenov.leetcode;
 
-/**
- *
- * @author alqualos
- */
 public class TreeNode {
     int val;
     TreeNode left;
@@ -16,5 +7,11 @@ public class TreeNode {
 
     TreeNode(int x) {
         val = x;
+    }
+
+    public TreeNode(int val, TreeNode left, TreeNode right) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
     }
 }
