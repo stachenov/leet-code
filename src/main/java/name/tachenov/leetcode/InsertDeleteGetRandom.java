@@ -14,30 +14,46 @@ public class InsertDeleteGetRandom {
     private final Random random = new Random();
     
     public boolean insert(int val) {
-        int count = counts.getOrDefault(val, 0);
-        Value newValue = new Value(val, count);
-        counts.put(val, count + 1);
+        return appendNewValue(val).wasAddedFirst();
+    }
+
+    private Value appendNewValue(int val) {
+        Value newValue = new Value(val, counts.getOrDefault(val, 0));
         values.add(newValue);
         indexes.put(newValue, values.size() - 1);
-        return count == 0;
+        counts.put(val, newValue.number + 1);
+        return newValue;
     }
     
     public boolean remove(int val) {
         int count = counts.getOrDefault(val, 0);
         if (count == 0)
             return false;
-        Value value = new Value(val, count - 1);
-        Integer index = indexes.get(value);
-        Value last = values.get(values.size() - 1);
-        values.set(index, last);
-        indexes.put(last, index);
-        values.remove(values.size() - 1);
-        indexes.remove(value);
-        if (count == 1)
-            counts.remove(val);
-        else
-            counts.put(val, count - 1);
+        int index = indexes.get(new Value(val, count - 1));
+        swapWithLastValue(index);
+        removeLastValue();
         return true;
+    }
+
+    private void swapWithLastValue(int index) {
+        int lastIndex = values.size() - 1;
+        Value temp = values.get(index);
+        Value last = values.get(lastIndex);
+        values.set(index, last);
+        values.set(lastIndex, temp);
+        indexes.put(last, index);
+        indexes.put(temp, lastIndex);
+    }
+
+    private void removeLastValue() {
+        int lastIndex = values.size() - 1;
+        Value value = values.get(lastIndex);
+        values.remove(lastIndex);
+        indexes.remove(value);
+        if (value.wasAddedFirst())
+            counts.remove(value.value);
+        else
+            counts.put(value.value, value.number);
     }
     
     public int getRandom() {
@@ -70,6 +86,10 @@ public class InsertDeleteGetRandom {
             final Value other = (Value) obj;
             return this.value == other.value
                     && this.number == other.number;
+        }
+
+        boolean wasAddedFirst() {
+            return number == 0;
         }
     }
 }
