@@ -5,7 +5,6 @@
 package name.tachenov.leetcode;
 
 import java.util.*;
-import java.util.stream.*;
 
 public class LargestDivisibleSubset {
 
@@ -13,68 +12,82 @@ public class LargestDivisibleSubset {
         Arrays.sort(nums);
         Graph graph = new Graph(nums);
         List<Integer> indexes = graph.longestPath();
-        return indexes.stream()
-                .map(i -> nums[i])
-                .collect(Collectors.toList());
-    }
-
-    private static boolean isDivisibleBy(int num1, int num2) {
-        return num2 != 0 && num1 % num2 == 0;
+        List<Integer> subset = new ArrayList<>();
+        for (int i : indexes)
+            subset.add(nums[i]);
+        return subset;
     }
 
     private static class Graph {
-        private final List<List<Integer>> outgoing = new ArrayList<>();
         private final List<List<Integer>> incoming = new ArrayList<>();
 
         public Graph(int[] nums) {
             for (int i = 0; i < nums.length; ++i) {
-                outgoing.add(new ArrayList<>());
                 incoming.add(new ArrayList<>());
             }
             for (int i = 0; i < nums.length; ++i) {
                 for (int j = i + 1; j < nums.length; ++j) {
                     if (isDivisibleBy(nums[j], nums[i])) {
-                        addEdge(i, j);
+                        incoming(j).add(i);
                     }
                 }
             }
         }
 
-        private void addEdge(int i, int j) {
-            outgoing.get(i).add(j);
-            incoming.get(j).add(i);
+        private static boolean isDivisibleBy(int num1, int num2) {
+            return num2 != 0 && num1 % num2 == 0;
+        }
+
+        private List<Integer> incoming(int j) {
+            return incoming.get(j);
         }
 
         List<Integer> longestPath() {
-            int[] longestTo = new int[size()];
-            int iLongest = -1, lenLongest = -1;
-            for (int j = 0; j < size(); ++j) {
-                for (int i : incoming.get(j)) {
-                    longestTo[j] = Math.max(longestTo[j], longestTo[i] + 1);
-                }
-                if (longestTo[j] > lenLongest) {
-                    iLongest = j;
-                    lenLongest = longestTo[j];
-                }
-            }
-            List<Integer> result = new ArrayList<>();
-            for (int j = iLongest; j != -1; ) {
-                result.add(j);
-                int nextJ = -1;
-                int nextLen = -1;
-                for (int i : incoming.get(j)) {
-                    if (longestTo[i] > nextLen) {
-                        nextJ = i;
-                        nextLen = longestTo[i];
-                    }
-                }
-                j = nextJ;
-            }
-            return result;
+            LongestPathFinder finder = new LongestPathFinder();
+            return finder.findLongestPath();
         }
 
         private int size() {
             return incoming.size();
+        }
+
+        private class LongestPathFinder {
+
+            private final int[] lenOfPathTo;
+            private final int[] parent;
+            private int vertexWithLongestPath;
+
+            public LongestPathFinder() {
+                lenOfPathTo = new int[size()];
+                parent = new int[size()];
+                calculateLongestPathsToVertices();
+            }
+
+            private void calculateLongestPathsToVertices() {
+                Arrays.fill(parent, -1);
+                vertexWithLongestPath = -1;
+                int lenLongest = -1;
+                for (int j = 0; j < size(); ++j) {
+                    for (int i : incoming(j)) {
+                        if (lenOfPathTo[i] + 1 > lenOfPathTo[j]) {
+                            lenOfPathTo[j] = lenOfPathTo[i] + 1;
+                            parent[j] = i;
+                        }
+                    }
+                    if (lenOfPathTo[j] > lenLongest) {
+                        vertexWithLongestPath = j;
+                        lenLongest = lenOfPathTo[j];
+                    }
+                }
+            }
+
+            private List<Integer> findLongestPath() {
+                List<Integer> result = new ArrayList<>();
+                for (int j = vertexWithLongestPath; j != -1; j = parent[j]) {
+                    result.add(j);
+                }
+                return result;
+            }
         }
     }
 }
