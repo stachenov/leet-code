@@ -10,6 +10,7 @@ import java.util.stream.*;
 public class LargestDivisibleSubset {
 
     public List<Integer> largestDivisibleSubset(int[] nums) {
+        Arrays.sort(nums);
         Graph graph = new Graph(nums);
         List<Integer> indexes = graph.longestPath();
         return indexes.stream()
@@ -31,8 +32,8 @@ public class LargestDivisibleSubset {
                 incoming.add(new ArrayList<>());
             }
             for (int i = 0; i < nums.length; ++i) {
-                for (int j = 0; j < nums.length; ++j) {
-                    if (i != j && isDivisibleBy(nums[i], nums[j])) {
+                for (int j = i + 1; j < nums.length; ++j) {
+                    if (isDivisibleBy(nums[j], nums[i])) {
                         addEdge(i, j);
                     }
                 }
@@ -44,51 +45,10 @@ public class LargestDivisibleSubset {
             incoming.get(j).add(i);
         }
 
-        private List<Integer> sortTopologically() {
-            List<List<Integer>> incomingCopy = copyOf(incoming);
-            List<List<Integer>> outgoingCopy = copyOf(outgoing);
-            List<Integer> sorted = new ArrayList<>();
-            Queue<Integer> queue = new ArrayDeque<>();
-            for (int i = 0; i < incoming.size(); ++i) {
-                if (incoming.get(i).isEmpty())
-                    queue.add(i);
-            }
-            while (!queue.isEmpty()) {
-                int i = queue.remove();
-                sorted.add(i);
-                for (int j : new ArrayList<>(outgoing.get(i))) {
-                    removeEdge(i, j);
-                    if (incoming.get(j).isEmpty())
-                        queue.add(j);
-                }
-            }
-            restore(incomingCopy, incoming);
-            restore(outgoingCopy, outgoing);
-            return sorted;
-        }
-
-        private static List<List<Integer>> copyOf(List<List<Integer>> lists) {
-            List<List<Integer>> copy = new ArrayList<>(lists.size());
-            for (List<Integer> original : lists)
-                copy.add(new ArrayList<>(original));
-            return copy;
-        }
-
-        private void removeEdge(int i, int j) {
-            outgoing.get(i).remove(Integer.valueOf(j));
-            incoming.get(j).remove(Integer.valueOf(i));
-        }
-
-        private void restore(List<List<Integer>> from, List<List<Integer>> to) {
-            for (int i = 0; i < to.size(); ++i)
-                to.set(i, from.get(i));
-        }
-
         List<Integer> longestPath() {
-            List<Integer> indexes = sortTopologically();
             int[] longestTo = new int[size()];
             int iLongest = -1, lenLongest = -1;
-            for (int j : indexes) {
+            for (int j = 0; j < size(); ++j) {
                 for (int i : incoming.get(j)) {
                     longestTo[j] = Math.max(longestTo[j], longestTo[i] + 1);
                 }
