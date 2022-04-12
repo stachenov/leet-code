@@ -1,5 +1,7 @@
 package name.tachenov.leetcode;
 
+import org.jetbrains.annotations.*;
+
 import java.util.*;
 
 public class MinimumWeightedSubgraphWithRequiredPaths {
@@ -21,23 +23,43 @@ public class MinimumWeightedSubgraphWithRequiredPaths {
         return minimumWeight == Long.MAX_VALUE ? -1L : minimumWeight;
     }
 
+    // Dijkstra’s algorithm
     private long[] findMinPath(int n, int[][] edges, int node, boolean reverse) {
-        var minPathOfMaxLength = new long[n];
-        Arrays.fill(minPathOfMaxLength, Long.MAX_VALUE);
-        minPathOfMaxLength[node] = 0;
-        for (int len = 1; len <= edges.length; ++len) {
-            final var minPathOfNextLength = Arrays.copyOf(minPathOfMaxLength, minPathOfMaxLength.length);
+        final var minPath = new long[n];
+        Arrays.fill(minPath, Long.MAX_VALUE);
+        minPath[node] = 0;
+        final var unvisitedNodes = new PriorityQueue<NodeMinPath>();
+        unvisitedNodes.add(new NodeMinPath(node, minPath[node]));
+        final boolean[] visited = new boolean[n];
+        int currentNode = node;
+        while (true) {
+            while (!unvisitedNodes.isEmpty() && visited[currentNode]) {
+                currentNode = unvisitedNodes.remove().node;
+            }
+            if (visited[currentNode])
+                break;
             for (int[] edge : edges) {
+                final var weight = edge[2];
                 final var from = reverse ? edge[1] : edge[0];
                 final var to = reverse ? edge[0] : edge[1];
-                final var weight = edge[2];
-                if (minPathOfMaxLength[from] != Long.MAX_VALUE) {
-                    minPathOfNextLength[to] = Math.min(minPathOfNextLength[to], minPathOfNextLength[from] + weight);
+                if (from != currentNode || visited[to])
+                    continue;
+                final var alternativePath = minPath[from] + weight;
+                if (alternativePath < minPath[to]) {
+                    minPath[to] = alternativePath;
+                    unvisitedNodes.add(new NodeMinPath(to, minPath[to]));
                 }
             }
-            minPathOfMaxLength = minPathOfNextLength;
+            visited[currentNode] = true;
         }
-        return minPathOfMaxLength;
+        return minPath;
+    }
+
+    private record NodeMinPath(int node, long minPath) implements Comparable<NodeMinPath> {
+        @Override
+        public int compareTo(@NotNull NodeMinPath o) {
+            return Long.compare(minPath, o.minPath);
+        }
     }
 
 }
