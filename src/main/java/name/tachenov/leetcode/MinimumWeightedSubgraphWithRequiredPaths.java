@@ -7,9 +7,10 @@ import java.util.*;
 public class MinimumWeightedSubgraphWithRequiredPaths {
 
     public long minimumWeight(int n, int[][] edges, int src1, int src2, int dest) {
-        final var minPathFromSrc1 = findMinPath(n, edges, src1, false);
-        final var minPathFromSrc2 = findMinPath(n, edges, src2, false);
-        final var minPathToDest = findMinPath(n, edges, dest, true);
+        final var graph = new Graph(n, edges);
+        final var minPathFromSrc1 = findMinPath(graph, src1);
+        final var minPathFromSrc2 = findMinPath(graph, src2);
+        final var minPathToDest = findMinPath(graph.reverse(), dest);
         var minimumWeight = Long.MAX_VALUE;
         for (int i = 0; i < n; i++) {
             final var fromSrc1 = minPathFromSrc1[i];
@@ -24,25 +25,24 @@ public class MinimumWeightedSubgraphWithRequiredPaths {
     }
 
     // Dijkstra’s algorithm
-    private long[] findMinPath(int n, int[][] edges, int node, boolean reverse) {
-        final var minPath = new long[n];
+    private long[] findMinPath(Graph graph, int node) {
+        final var minPath = new long[graph.size()];
         Arrays.fill(minPath, Long.MAX_VALUE);
         minPath[node] = 0;
         final var unvisitedNodes = new PriorityQueue<NodeMinPath>();
         unvisitedNodes.add(new NodeMinPath(node, minPath[node]));
-        final boolean[] visited = new boolean[n];
-        int currentNode = node;
+        final boolean[] visited = new boolean[graph.size()];
+        int from = node;
         while (true) {
-            while (!unvisitedNodes.isEmpty() && visited[currentNode]) {
-                currentNode = unvisitedNodes.remove().node;
+            while (!unvisitedNodes.isEmpty() && visited[from]) {
+                from = unvisitedNodes.remove().node;
             }
-            if (visited[currentNode])
+            if (visited[from])
                 break;
-            for (int[] edge : edges) {
-                final var weight = edge[2];
-                final var from = reverse ? edge[1] : edge[0];
-                final var to = reverse ? edge[0] : edge[1];
-                if (from != currentNode || visited[to])
+            for (Edge edge : graph.getEdgesFrom(from)) {
+                final var weight = edge.weight();
+                final var to = edge.to();
+                if (visited[to])
                     continue;
                 final var alternativePath = minPath[from] + weight;
                 if (alternativePath < minPath[to]) {
@@ -50,14 +50,52 @@ public class MinimumWeightedSubgraphWithRequiredPaths {
                     unvisitedNodes.add(new NodeMinPath(to, minPath[to]));
                 }
             }
-            visited[currentNode] = true;
+            visited[from] = true;
         }
         return minPath;
     }
 
+    private static class Graph {
+
+        private final int size;
+        private final int[][] edges;
+        private final List<List<Edge>> fromTo = new ArrayList<>();
+
+        Graph(int n, int[][] edges) {
+            this.size = n;
+            this.edges = edges;
+            for (int i = 0; i < size(); i++) {
+                fromTo.add(new ArrayList<>());
+            }
+            for (int[] edge : edges) {
+                fromTo.get(edge[0]).add(new Edge(edge[1], edge[2]));
+            }
+        }
+
+        Graph reverse() {
+            int[][] reverseEdges = new int[edges.length][3];
+            for (int i = 0; i < edges.length; i++) {
+                reverseEdges[i][0] = edges[i][1];
+                reverseEdges[i][1] = edges[i][0];
+                reverseEdges[i][2] = edges[i][2];
+            }
+            return new Graph(size, reverseEdges);
+        }
+
+        public int size() {
+            return size;
+        }
+
+        public List<Edge> getEdgesFrom(int from) {
+            return fromTo.get(from);
+        }
+    }
+
+    private record Edge(int to, int weight) { }
+
     private record NodeMinPath(int node, long minPath) implements Comparable<NodeMinPath> {
         @Override
-        public int compareTo(@NotNull NodeMinPath o) {
+        public int compareTo(NodeMinPath o) {
             return Long.compare(minPath, o.minPath);
         }
     }
